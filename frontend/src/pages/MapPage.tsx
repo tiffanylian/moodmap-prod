@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { MoodPin } from "../types";
+import MapView from "../components/MapView";
 
 // temporary mock data – replace with backend later
 const MOCK_PINS: MoodPin[] = [
@@ -15,7 +16,7 @@ const MOCK_PINS: MoodPin[] = [
   {
     id: 2,
     lat: 39.9505,
-    lng: -75.1900,
+    lng: -75.19,
     mood: "STRESSED",
     message: "Midterms week…",
     createdAt: new Date().toISOString(),
@@ -42,74 +43,58 @@ export default function MapPage() {
   }, []);
 
   return (
-    <div style={{ padding: 40 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <h2>Mood Map</h2>
-        <button
-          type="button"
-          onClick={() => navigate("/submit")}
+    <div className="page">
+      <div className="page-inner">
+        <div
           style={{
-            padding: "8px 12px",
-            borderRadius: 4,
-            border: "1px solid #ccc",
-            cursor: "pointer",
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 20,
+            alignItems: "center",
           }}
         >
-          Add another pin
-        </button>
+          <h2 className="page-title" style={{ marginBottom: 0 }}>
+            Mood Map
+          </h2>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() => navigate("/submit")}
+          >
+            Add pin
+          </button>
+        </div>
+
+        {/* Mapbox map */}
+        <MapView pins={pins} />
+
+        <h3 style={{ fontSize: "1rem", marginBottom: 8 }}>Recent pins</h3>
+
+        {loading && <p className="page-subtitle">Loading…</p>}
+
+        {!loading && pins.length === 0 && (
+          <p className="page-subtitle">No pins yet.</p>
+        )}
+
+        {!loading && pins.length > 0 && (
+          <ul className="pin-list">
+            {pins.map((pin) => (
+              <li key={pin.id} className="pin-item">
+                <strong>{pin.mood}</strong>
+                {pin.message && ` — ${pin.message}`}
+                <div className="pin-meta">
+                  {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)} ·{" "}
+                  {new Date(pin.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-
-      {/* Mapbox placeholder */}
-      <div
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: 8,
-          height: 320,
-          marginBottom: 24,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background:
-            "repeating-linear-gradient(45deg, #fafafa, #fafafa 10px, #f0f0f0 10px, #f0f0f0 20px)",
-        }}
-      >
-        <span style={{ color: "#555" }}>
-          Map placeholder — Mapbox will render here
-        </span>
-      </div>
-
-      <h3>Current pins</h3>
-
-      {loading && <p>Loading pins…</p>}
-
-      {!loading && pins.length === 0 && <p>No pins yet.</p>}
-
-      {!loading && pins.length > 0 && (
-        <ul style={{ listStyle: "none", padding: 0, marginTop: 12 }}>
-          {pins.map((pin) => (
-            <li
-              key={pin.id}
-              style={{
-                padding: "8px 0",
-                borderBottom: "1px solid #eee",
-                fontSize: 14,
-              }}
-            >
-              <strong>{pin.mood}</strong>
-              {pin.message && ` — ${pin.message}`}
-              <div style={{ color: "#777", fontSize: 12, marginTop: 2 }}>
-                {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }
