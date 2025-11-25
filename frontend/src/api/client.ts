@@ -35,23 +35,57 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 }
 
 /**
- * Sign in with email using Supabase magic link
- * This will send an email to the user with a login link
+ * Check if a user exists in the database
+ */
+export async function checkUserExists(email: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle();
+
+  return !error && data !== null;
+}
+
+/**
+ * Validate email format (Penn email)
+ */
+function isValidPennEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+/**
+ * Sign in with email - validates format and creates anonymous session
+ * No email is sent, user is signed in directly
  */
 export async function loginWithEmail(email: string): Promise<void> {
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: window.location.origin,
-    },
-  });
-
-  if (error) {
-    throw new Error(error.message);
+  // Validate email format
+  if (!isValidPennEmail(email)) {
+    throw new Error('Please enter a valid email address');
   }
 
-  // After this, user needs to check their email and click the link
-  // You may want to show a message to the user
+  // Check if user already exists
+  const userExists = await checkUserExists(email);
+
+  // Sign in anonymously first to get a session
+  const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+  
+  if (anonError || !anonData.user) {
+    throw new Error('Failed to create session');
+  }
+
+  // Store the email in the users table
+  const { error: upsertError } = await supabase
+    .from('users')
+    .upsert(
+      { id: anonData.user.id, email },
+      { onConflict: 'id' }
+    );
+
+  if (upsertError) {
+    throw new Error('Failed to save user data');
+  }
 }
 
 /**

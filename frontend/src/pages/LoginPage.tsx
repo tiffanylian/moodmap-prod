@@ -6,7 +6,6 @@ import { useAuth } from "../contexts/AuthContext";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -25,54 +24,13 @@ export default function LoginPage() {
 
     try {
       await loginWithEmail(email);
-      setEmailSent(true);
+      // User is now signed in, will be redirected by useEffect
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to send login email"
-      );
+      setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {
       setLoading(false);
     }
   };
-
-  if (emailSent) {
-    return (
-      <div className="auth-page">
-        <div className="auth-card">
-          <h1 className="auth-title">📧 Check your email</h1>
-          <p className="auth-subtitle">
-            We sent a sign-in link to <strong>{email}</strong>
-          </p>
-          <p className="auth-subtitle">
-            Click the link in your email to continue. The link will bring you
-            back here and automatically sign you in.
-          </p>
-          <div
-            style={{
-              background: "#f0f9ff",
-              border: "1px solid #0ea5e9",
-              padding: 12,
-              borderRadius: 6,
-              marginTop: 16,
-              fontSize: 14,
-            }}
-          >
-            💡 <strong>First time?</strong> You'll get a "Confirm your signup"
-            email.
-            <br />
-            <strong>Returning?</strong> You'll get a "Magic link" email.
-          </div>
-          <button
-            onClick={() => setEmailSent(false)}
-            className="auth-button"
-            style={{ marginTop: 16 }}
-          >
-            Use a different email
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // Show loading while checking auth status
   if (authLoading) {
@@ -112,7 +70,7 @@ export default function LoginPage() {
           )}
 
           <button type="submit" className="auth-button" disabled={loading}>
-            {loading ? "Sending..." : "Continue"}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
