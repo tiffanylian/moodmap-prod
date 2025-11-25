@@ -1,4 +1,4 @@
-import type { Database } from './database';
+import type { Database } from './types/database';
 
 // Map database mood labels to frontend format
 export type Mood = "HYPED" | "VIBING" | "MID" | "STRESSED" | "TIRED";

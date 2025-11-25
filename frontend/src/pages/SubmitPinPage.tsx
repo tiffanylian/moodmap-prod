@@ -1,10 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPin, getCurrentUser } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
+import mapboxgl from "mapbox-gl";
 import type { Mood } from "../types";
 
 const MOODS: Mood[] = ["HYPED", "VIBING", "MID", "STRESSED", "TIRED"];
+
+// Set Mapbox token
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
 export default function SubmitPinPage() {
   const [mood, setMood] = useState<Mood>("MID");
@@ -12,14 +16,16 @@ export default function SubmitPinPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
+  const [lat, setLat] = useState(39.9522);
+  const [lng, setLng] = useState(-75.1932);
+  const [pinPlaced, setPinPlaced] = useState(false);
+  
   const navigate = useNavigate();
   const { user } = useAuth();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
 
-  // placeholder coords for now - in real app, get from map click
-  const lat = 39.9522;
-  const lng = -75.1932;
-
-  // Redirect if not logged in
+  // Redirect if not logged in and check daily submission
   useEffect(() => {
     if (!user) {
       navigate("/");
@@ -33,6 +39,52 @@ export default function SubmitPinPage() {
       }
     });
   }, [user, navigate]);
+
+  // Initialize interactive map
+  useEffect(() => {
+    if (mapRef.current || !containerRef.current) return;
+
+    mapRef.current = new mapboxgl.Map({
+      container: containerRef.current,
+      style: "mapbox://styles/mapbox/streets-v12",
+      center: [lng, lat],
+      zoom: 14,
+    });
+
+    mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+    const map = mapRef.current;
+
+    // Handle map clicks to place pin (only one pin allowed)
+    map.on("click", (e) => {
+      // Don't place another pin if one already exists
+      if (pinPlaced) {
+        return;
+      }
+
+      const clickedLng = e.lngLat.lng;
+      const clickedLat = e.lngLat.lat;
+
+      // Create new marker at clicked location
+      const markerEl = document.createElement("div");
+      markerEl.style.width = "24px";
+      markerEl.style.height = "24px";
+      markerEl.style.borderRadius = "50%";
+      markerEl.style.backgroundColor = "#ef4444";
+      markerEl.style.border = "3px solid white";
+      markerEl.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
+      markerEl.style.cursor = "pointer";
+
+      const _newMarker = new mapboxgl.Marker(markerEl)
+        .setLngLat([clickedLng, clickedLat])
+        .addTo(map);
+      void _newMarker; // Marker is added to map via side effect
+
+      setLng(clickedLng);
+      setLat(clickedLat);
+      setPinPlaced(true);
+    });
+  }, [pinPlaced]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +106,7 @@ export default function SubmitPinPage() {
       <div className="page-inner">
         <h2 className="page-title">Submit mood pin</h2>
         <p className="page-subtitle">
-          Share how you&apos;re feeling somewhere on campus to unlock the map.
+          Click on the map to place your pin, then select how you&apos;re feeling.
         </p>
 
         {hasSubmittedToday && (
@@ -73,11 +125,18 @@ export default function SubmitPinPage() {
           </div>
         )}
 
-        {/* Map placeholder */}
-        <div className="map-shell">
-          Map placeholder — pin will be dropped around {lat.toFixed(4)},{" "}
-          {lng.toFixed(4)}
-        </div>
+        {/* Interactive Mapbox map */}
+        <div ref={containerRef} className="mapbox-container" style={{ marginBottom: 16 }} />
+
+        {pinPlaced ? (
+          <div style={{ fontSize: 14, color: "#16a34a", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+            ✓ <strong>Pin placed at {lat.toFixed(4)}, {lng.toFixed(4)}</strong>
+          </div>
+        ) : (
+          <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 16 }}>
+            📍 Click on the map to place your pin
+          </div>
+        )}
 
         <form
           onSubmit={handleSubmit}

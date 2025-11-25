@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-import type { CurrentUser, MoodPin, Mood, fromDbMood, toDbMood } from "../types";
+import type { CurrentUser, MoodPin, Mood } from "../types";
 import { fromDbMood as convertFromDbMood, toDbMood as convertToDbMood } from "../types";
 
 /**
@@ -64,9 +64,6 @@ export async function loginWithEmail(email: string): Promise<void> {
   if (!isValidPennEmail(email)) {
     throw new Error('Please enter a valid email address');
   }
-
-  // Check if user already exists
-  const userExists = await checkUserExists(email);
 
   // Sign in anonymously first to get a session
   const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();

@@ -1,42 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchPins, logout } from "../api/client";
+import { fetchPins } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import type { MoodPin } from "../types";
 import MapView from "../components/MapView";
 
-// temporary mock data – replace with backend later
-const MOCK_PINS: MoodPin[] = [
-  {
-    id: 1,
-    lat: 39.9522,
-    lng: -75.1932,
-    mood: "HYPED",
-    message: "Sun is out, vibes are good",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    lat: 39.9505,
-    lng: -75.19,
-    mood: "STRESSED",
-    message: "Midterms week…",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    lat: 39.953,
-    lng: -75.197,
-    mood: "MID",
-    message: "",
-    createdAt: new Date().toISOString(),
-  },
-];
-
 export default function MapPage() {
   const [pins, setPins] = useState<MoodPin[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -53,7 +24,7 @@ export default function MapPage() {
         const data = await fetchPins();
         setPins(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load pins");
+        console.error("Failed to load pins:", err);
       } finally {
         setLoading(false);
       }
@@ -61,15 +32,6 @@ export default function MapPage() {
 
     loadPins();
   }, [user, navigate]);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/");
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-  };
 
   return (
     <div className="page">
