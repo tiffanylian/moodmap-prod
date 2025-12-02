@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPin, getCurrentUser } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
+import { quickValidateText, checkContentQuality } from "../utils/qcValidator";
 import mapboxgl from "mapbox-gl";
 import type { Mood } from "../types";
 
@@ -15,6 +16,7 @@ export default function SubmitPinPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [qcWarning, setQcWarning] = useState("");
   const [todayPinCount, setTodayPinCount] = useState(0);
   const [lat, setLat] = useState(39.9522);
   const [lng, setLng] = useState(-75.1932);
@@ -96,12 +98,38 @@ export default function SubmitPinPage() {
     setPinPlaced(false);
   };
 
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newMessage = e.target.value;
+    setMessage(newMessage);
+
+    // Perform quick client-side validation
+    const { hasIssues, warningMessage } = quickValidateText(newMessage);
+    if (hasIssues) {
+      setQcWarning(warningMessage);
+    } else {
+      setQcWarning("");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
+      // Perform full QC check on message before submission
+      if (message) {
+        const qcResult = await checkContentQuality(message);
+        
+        // If content is blocked, don't submit
+        if (qcResult.status === "blocked") {
+          setError(qcResult.message);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Proceed with submission
       await createPin({ lat, lng, mood, message: message || undefined });
       navigate("/map");
     } catch (err) {
@@ -241,10 +269,25 @@ export default function SubmitPinPage() {
               maxLength={200}
               rows={4}
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={handleMessageChange}
               placeholder="Today I feel..."
               style={{ resize: "vertical" }}
             />
+            {qcWarning && (
+              <div
+                style={{
+                  color: "#f97316",
+                  fontSize: 13,
+                  marginTop: 8,
+                  padding: "8px 12px",
+                  backgroundColor: "#ffedd5",
+                  borderRadius: 4,
+                  border: "1px solid #fed7aa",
+                }}
+              >
+                ⚠️ {qcWarning}
+              </div>
+            )}
           </div>
 
           {error && (
