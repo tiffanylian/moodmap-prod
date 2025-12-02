@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import mapboxgl from "mapbox-gl";
 import Supercluster from "supercluster";
 import type { MoodPin } from "../types";
@@ -8,6 +8,10 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
 interface Props {
   pins: MoodPin[];
+}
+
+interface MapViewHandle {
+  centerOnPin: (lat: number, lng: number, zoom?: number) => void;
 }
 
 // Mood color mapping
@@ -72,12 +76,25 @@ function getClusterColor(moods: MoodPin["mood"][]): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-export default function MapView({ pins }: Props) {
+export default forwardRef<MapViewHandle, Props>(function MapView({ pins }, ref) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const clusterRef = useRef<Supercluster<any, any> | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [zoom, setZoom] = useState(14);
+
+  // Expose centerOnPin method via ref
+  useImperativeHandle(ref, () => ({
+    centerOnPin: (lat: number, lng: number, zoom_level: number = 16) => {
+      if (mapRef.current) {
+        mapRef.current.easeTo({
+          center: [lng, lat],
+          zoom: zoom_level,
+          duration: 500,
+        });
+      }
+    },
+  }));
 
   // Initialize clustering
   useEffect(() => {
@@ -207,4 +224,4 @@ export default function MapView({ pins }: Props) {
   }, [zoom]);
 
   return <div ref={containerRef} className="mapbox-container" />;
-}
+});

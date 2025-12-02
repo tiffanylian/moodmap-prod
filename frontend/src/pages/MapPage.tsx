@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchPins } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
@@ -10,6 +10,7 @@ export default function MapPage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const mapRef = useRef<{ centerOnPin: (lat: number, lng: number, zoom?: number) => void } | null>(null);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -89,7 +90,7 @@ export default function MapPage() {
 
         {/* Mapbox map - reduced height */}
         <div style={{ height: 300, marginBottom: 16, borderRadius: 8, overflow: "hidden" }}>
-          <MapView pins={pins} />
+          <MapView pins={pins} ref={mapRef} />
         </div>
 
         {/* Recent pins section - scrollable white box */}
@@ -142,7 +143,28 @@ export default function MapPage() {
               }}
             >
               {pins.map((pin) => (
-                <li key={pin.id} className="pin-item" style={{ marginBottom: 8 }}>
+                <li
+                  key={pin.id}
+                  className="pin-item"
+                  style={{
+                    marginBottom: 8,
+                    cursor: "pointer",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    transition: "background-color 0.2s",
+                  }}
+                  onClick={() => {
+                    if (mapRef.current) {
+                      mapRef.current.centerOnPin(pin.lat, pin.lng, 16);
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = "#f3f4f6";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                  }}
+                >
                   <strong>{pin.mood}</strong>
                   {pin.message && ` — ${pin.message}`}
                   <div className="pin-meta">
