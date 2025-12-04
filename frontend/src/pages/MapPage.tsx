@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchPins, calculateStreak } from "../api/client";
+import { fetchPins, calculateStreak, logout } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import { motion } from "framer-motion";
 import type { MoodPin } from "../types";
@@ -69,13 +69,25 @@ export default function MapPage() {
               ✨ see what everyone&apos;s feeling ✨
             </p>
           </motion.div>
-          <button
-            type="button"
-            className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full font-semibold text-sm hover:bg-white shadow-md transition-all"
-            onClick={() => navigate("/submit")}
-          >
-            add pin
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full font-semibold text-sm hover:bg-white shadow-md transition-all"
+              onClick={() => navigate("/submit")}
+            >
+              add pin
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 bg-red-200/80 backdrop-blur-sm rounded-full font-semibold text-sm hover:bg-red-300 text-red-800 shadow-md transition-all"
+              onClick={async () => {
+                await logout();
+                navigate("/");
+              }}
+            >
+              logout
+            </button>
+          </div>
         </div>
 
         {/* Streak Display */}
