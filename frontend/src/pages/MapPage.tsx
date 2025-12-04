@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchPins } from "../api/client";
+import { fetchPins, calculateStreak } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import { motion } from "framer-motion";
 import type { MoodPin } from "../types";
@@ -10,6 +10,7 @@ import FloatingStars from "../components/FloatingStars";
 export default function MapPage() {
   const [pins, setPins] = useState<MoodPin[]>([]);
   const [loading, setLoading] = useState(true);
+  const [streak, setStreak] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
   const mapRef = useRef<{
@@ -23,19 +24,22 @@ export default function MapPage() {
       return;
     }
 
-    // Fetch pins from Supabase
-    const loadPins = async () => {
+    // Fetch pins and streak from Supabase
+    const loadData = async () => {
       try {
         const data = await fetchPins();
         setPins(data);
+        
+        const userStreak = await calculateStreak();
+        setStreak(userStreak);
       } catch (err) {
-        console.error("Failed to load pins:", err);
+        console.error("Failed to load data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadPins();
+    loadData();
   }, [user, navigate]);
 
   return (
@@ -73,6 +77,32 @@ export default function MapPage() {
             add pin
           </button>
         </div>
+
+        {/* Streak Display */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="relative bg-gradient-to-r from-amber-200 to-orange-200 rounded-3xl p-4 mb-6 shadow-lg border-2 border-amber-300"
+        >
+          <div className="flex items-center gap-4">
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+              className="text-4xl"
+            >
+              🔥
+            </motion.div>
+            <div>
+              <div className="text-2xl font-bold text-amber-900">
+                {streak} day streak
+              </div>
+              <p className="text-sm text-amber-800">
+                Keep it up! Submit a pin daily to maintain your streak.
+              </p>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Legend */}
         <motion.div
@@ -172,7 +202,7 @@ export default function MapPage() {
                   whileHover={{ scale: 1.02 }}
                   onClick={() => {
                     if (mapRef.current) {
-                      mapRef.current.centerOnPin(pin.lat, pin.lng, 16);
+                      mapRef.current.centerOnPin(pin.lat, pin.lng, 18);
                     }
                   }}
                   className="bg-white/50 backdrop-blur-sm rounded-2xl p-4 cursor-pointer hover:bg-white/80 transition-all"

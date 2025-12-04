@@ -37,6 +37,52 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 }
 
 /**
+ * Calculate the user's consecutive day streak
+ */
+export async function calculateStreak(): Promise<number> {
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError || !session?.user) {
+    return 0;
+  }
+
+  const userId = session.user.id;
+
+  // Fetch all pins for this user, ordered by date
+  const { data: pins, error } = await supabase
+    .from('mood_pins')
+    .select('created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error || !pins || pins.length === 0) {
+    return 0;
+  }
+
+  // Convert dates to day strings (YYYY-MM-DD)
+  const daysWithPins = new Set(
+    pins.map(pin => new Date(pin.created_at).toISOString().split('T')[0])
+  );
+
+  // Check consecutive days starting from today and going backwards
+  let streak = 0;
+  let currentDate = new Date();
+
+  while (true) {
+    const dateString = currentDate.toISOString().split('T')[0];
+    
+    if (daysWithPins.has(dateString)) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+/**
  * Check if a user exists in the database
  */
 export async function checkUserExists(email: string): Promise<boolean> {
@@ -101,9 +147,13 @@ export async function logout(): Promise<void> {
  * Fetch all mood pins from the database
  */
 export async function fetchPins(): Promise<MoodPin[]> {
+  // Calculate timestamp for 24 hours ago
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
   const { data, error } = await supabase
     .from('mood_pins')
     .select('*')
+    .gte('created_at', twentyFourHoursAgo)
     .order('created_at', { ascending: false });
 
   if (error) {
