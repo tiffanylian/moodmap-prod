@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Mood } from "../types";
 import EmotionButton from "../components/EmotionButton";
 import FloatingStars from "../components/FloatingStars";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const MOODS: Array<{ emoji: string; label: Mood; color: string }> = [
   { emoji: "🔥", label: "HYPED", color: "#FF9AA2" },
@@ -31,6 +32,7 @@ export default function SubmitPinPage() {
   const [lng, setLng] = useState(-75.1932);
   const [pinPlaced, setPinPlaced] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -194,11 +196,8 @@ export default function SubmitPinPage() {
             </button>
             <button
               type="button"
-              className="px-4 py-2 bg-red-200/80 backdrop-blur-sm rounded-full font-semibold text-sm hover:bg-red-300 text-red-800 shadow-md transition-all"
-              onClick={async () => {
-                await logout();
-                navigate("/");
-              }}
+              className="px-4 py-2 bg-gradient-to-r from-purple-400 to-blue-400 backdrop-blur-sm rounded-full font-semibold text-sm hover:from-purple-500 hover:to-blue-500 text-white shadow-md transition-all"
+              onClick={() => setShowLogoutConfirm(true)}
             >
               logout
             </button>
@@ -383,6 +382,22 @@ export default function SubmitPinPage() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        title="Sign out?"
+        message="Are you sure you want to sign out? You can always sign back in."
+        confirmText="Sign out"
+        cancelText="Cancel"
+        isDangerous={true}
+        onConfirm={async () => {
+          setShowLogoutConfirm(false);
+          await logout();
+          navigate("/");
+        }}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
 
       <style>{`
         @keyframes blob {
