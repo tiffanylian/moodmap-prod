@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { createPin, getCurrentUser } from "../api/client";
+import { createPin, getCurrentUser, logout } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import { quickValidateText, checkContentQuality } from "../utils/qcValidator";
 import mapboxgl from "mapbox-gl";
@@ -184,13 +184,25 @@ export default function SubmitPinPage() {
               ✨ check in with yourself bestie ✨
             </p>
           </motion.div>
-          <button
-            type="button"
-            className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full font-semibold text-sm hover:bg-white shadow-md transition-all"
-            onClick={() => navigate("/map")}
-          >
-            view pins
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full font-semibold text-sm hover:bg-white shadow-md transition-all"
+              onClick={() => navigate("/map")}
+            >
+              view pins
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 bg-red-200/80 backdrop-blur-sm rounded-full font-semibold text-sm hover:bg-red-300 text-red-800 shadow-md transition-all"
+              onClick={async () => {
+                await logout();
+                navigate("/");
+              }}
+            >
+              logout
+            </button>
+          </div>
         </div>
 
         {todayPinCount > 0 && (
