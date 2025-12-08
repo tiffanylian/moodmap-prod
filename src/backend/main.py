@@ -45,11 +45,13 @@ app.add_middleware(
 
 # Initialize Supabase client
 supabase_url = os.getenv("SUPABASE_URL")
-supabase_key = os.getenv("SUPABASE_KEY")
+# Try service role key first, fall back to anon key
+supabase_key = os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_ANON_KEY")
 
 logger.info(f"Supabase URL: {supabase_url}")
 logger.info(f"Supabase Key present: {bool(supabase_key)}")
 logger.info(f"Supabase Key length: {len(supabase_key) if supabase_key else 0}")
+logger.info(f"Using service role key: {bool(os.getenv('SUPABASE_KEY'))}, Using anon key: {bool(os.getenv('SUPABASE_ANON_KEY'))}")
 
 supabase = None
 if supabase_url and supabase_key:
