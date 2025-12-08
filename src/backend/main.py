@@ -44,10 +44,20 @@ app.add_middleware(
 # Initialize Supabase client
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
+
+logger.info(f"Supabase URL: {supabase_url}")
+logger.info(f"Supabase Key present: {bool(supabase_key)}")
+
+supabase = None
 if supabase_url and supabase_key:
-    supabase: Client = create_client(supabase_url, supabase_key)
+    try:
+        supabase: Client = create_client(supabase_url, supabase_key)
+        logger.info("Supabase client initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Supabase client: {e}")
+        supabase = None
 else:
-    supabase = None
+    logger.warning("Supabase URL or KEY not configured")
 
 # Initialize QC checker
 qc_checker = QCChecker(sentiment_threshold=-0.5)
