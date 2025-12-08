@@ -1,6 +1,8 @@
 """
 Main FastAPI application for Mood Map backend.
 Handles pin submission with quality control checking.
+
+Version: 1.0.1 - Fixed environment variable loading
 """
 
 from fastapi import FastAPI, HTTPException, Depends, status
