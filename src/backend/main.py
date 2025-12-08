@@ -146,6 +146,18 @@ async def health_check():
     return {"status": "ok", "service": "mood-map-backend"}
 
 
+@app.get("/debug")
+async def debug():
+    """Debug endpoint to check environment variables."""
+    return {
+        "supabase_url_set": bool(os.getenv("SUPABASE_URL")),
+        "supabase_key_set": bool(os.getenv("SUPABASE_KEY")),
+        "supabase_url": os.getenv("SUPABASE_URL", "NOT SET"),
+        "supabase_key_prefix": (os.getenv("SUPABASE_KEY", "")[:20] if os.getenv("SUPABASE_KEY") else "NOT SET"),
+        "supabase_client_ready": supabase is not None
+    }
+
+
 @app.get("/pins/test")
 async def test_pins():
     """Test endpoint to check pins in database."""
