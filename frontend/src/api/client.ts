@@ -143,31 +143,25 @@ function isValidPennEmail(email: string): boolean {
  * No email is sent, user is signed in directly
  */
 export async function loginWithEmail(email: string): Promise<void> {
-  // Validate email format
-  if (!isValidPennEmail(email)) {
-    throw new Error('Please enter a valid email address');
+  // Validate Penn email domain
+  if (!email.toLowerCase().endsWith('@upenn.edu')) {
+    throw new Error('Please use your Penn email (@upenn.edu)');
   }
 
-  // Sign in anonymously first to get a session
-  const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+  // Send magic link to user's Penn email
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email.toLowerCase().trim(),
+    options: {
+      // Don't specify emailRedirectTo - let Supabase use the Site URL
+      shouldCreateUser: true,
+    }
+  });
   
-  if (anonError || !anonData.user) {
-    throw new Error('Failed to create session');
+  if (error) {
+    throw new Error(error.message);
   }
-
-  // Try to insert the user - use a unique email per session by appending the user ID
-  // This prevents email uniqueness violations while keeping track of the original email
-  const uniqueEmail = `${anonData.user.id}@anonymous.moodmap.app`;
   
-  const { error: insertError } = await supabase
-    .from('users')
-    .insert({ id: anonData.user.id, email: uniqueEmail });
-
-  // Ignore duplicate key errors (user might already exist from a previous operation)
-  if (insertError && !insertError.message.includes('duplicate key')) {
-    console.error('Error creating user:', insertError);
-    throw new Error('Failed to save user data');
-  }
+  // Success - user will receive magic link email
 }
 
 /**

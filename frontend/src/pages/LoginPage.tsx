@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
@@ -26,9 +27,12 @@ export default function LoginPage() {
 
     try {
       await loginWithEmail(email);
-      // User is now signed in, will be redirected by useEffect
+      setEmailSent(true);
+      // User will click magic link in email to complete sign in
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sign in");
+      setError(
+        err instanceof Error ? err.message : "Failed to send login link"
+      );
     } finally {
       setLoading(false);
     }
@@ -108,9 +112,23 @@ export default function LoginPage() {
                 </motion.div>
               )}
 
+              {emailSent && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 bg-green-100 border-2 border-green-300 rounded-2xl text-green-700 text-sm font-medium text-center"
+                >
+                  <p className="font-bold mb-1">✨ Check your email!</p>
+                  <p className="text-xs">
+                    We sent a magic link to {email}. Click it to sign in (check
+                    spam if needed).
+                  </p>
+                </motion.div>
+              )}
+
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || emailSent}
                 className="w-full h-12 text-lg font-bold bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
@@ -124,8 +142,10 @@ export default function LoginPage() {
                   >
                     ✨
                   </motion.span>
+                ) : emailSent ? (
+                  "Email sent! Check your inbox"
                 ) : (
-                  "Sign in"
+                  "Send magic link"
                 )}
               </button>
             </form>
