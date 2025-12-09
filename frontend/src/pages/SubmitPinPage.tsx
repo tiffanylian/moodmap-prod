@@ -53,6 +53,11 @@ export default function SubmitPinPage() {
     // Wait for auth to load before redirecting
     if (authLoading) return;
 
+    // If URL contains auth tokens (from magic link), wait a bit longer for processing
+    if (window.location.hash.includes("access_token")) {
+      return;
+    }
+
     if (!user) {
       navigate("/", { replace: true });
       return;

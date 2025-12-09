@@ -143,7 +143,7 @@ export async function loginWithEmail(email: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
     email: email.toLowerCase().trim(),
     options: {
-      emailRedirectTo: 'https://moodmap-prod-pi.vercel.app/submit',
+      emailRedirectTo: `${window.location.origin}/submit`,
       shouldCreateUser: true,
     }
   });
@@ -160,7 +160,8 @@ export async function loginWithEmail(email: string): Promise<void> {
  */
 export async function logout(): Promise<void> {
   const { error } = await supabase.auth.signOut();
-  if (error) {
+  // Ignore "Auth session missing" errors - user is already logged out
+  if (error && !error.message.includes('Auth session missing')) {
     throw new Error(error.message);
   }
 }
