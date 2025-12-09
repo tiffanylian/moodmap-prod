@@ -143,7 +143,7 @@ export async function loginWithEmail(email: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
     email: email.toLowerCase().trim(),
     options: {
-      // Don't specify emailRedirectTo - let Supabase use the Site URL
+      emailRedirectTo: 'https://moodmap-prod-pi.vercel.app/submit',
       shouldCreateUser: true,
     }
   });
