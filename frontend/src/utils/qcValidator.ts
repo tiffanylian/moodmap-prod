@@ -93,6 +93,7 @@ export function quickValidateText(text: string): {
     "burning myself",
     "hurting myself",
     "end it all",
+    "unalive",
   ];
 
   const textLower = text.toLowerCase();
