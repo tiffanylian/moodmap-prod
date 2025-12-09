@@ -44,6 +44,7 @@ export default forwardRef<MapViewHandle, Props>(function MapView(
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const currentPopupRef = useRef<mapboxgl.Popup | null>(null);
   const [zoom, setZoom] = useState(14);
 
   // Expose centerOnPin method via ref
@@ -80,6 +81,14 @@ export default forwardRef<MapViewHandle, Props>(function MapView(
     // Update zoom state on zoom change
     mapRef.current.on("zoom", () => {
       setZoom(mapRef.current?.getZoom() ?? 14);
+    });
+
+    // Close popup when clicking elsewhere on the map
+    mapRef.current.on("click", () => {
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
     });
   }, []);
 
@@ -128,7 +137,19 @@ export default forwardRef<MapViewHandle, Props>(function MapView(
       // This gives us more control over the behavior
       el.addEventListener("click", (e) => {
         e.stopPropagation();
+
+        // Close any currently open popup
+        if (currentPopupRef.current) {
+          currentPopupRef.current.remove();
+        }
+
+        // Open this popup and track it
         marker.togglePopup();
+        if (marker.getPopup().isOpen()) {
+          currentPopupRef.current = marker.getPopup();
+        } else {
+          currentPopupRef.current = null;
+        }
       });
 
       markersRef.current.push(marker);
