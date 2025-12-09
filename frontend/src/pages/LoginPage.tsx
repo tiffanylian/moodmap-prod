@@ -21,9 +21,13 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
-  // Redirect if already logged in
+  // Redirect if already logged in (but not if they're on the map page)
   useEffect(() => {
     if (user && !authLoading) {
+      // Check if user is trying to access the map page
+      if (window.location.pathname === "/map") {
+        return; // Stay on map page
+      }
       navigate("/submit", { replace: true });
     }
   }, [user, authLoading, navigate]);
