@@ -108,25 +108,28 @@ export default forwardRef<MapViewHandle, Props>(function MapView(
       el.style.background = `radial-gradient(circle at center, ${color}, ${color}cc 20%, ${color}99 40%, ${color}55 65%, transparent)`;
       el.style.cursor = "pointer";
 
-      // Add click handler to zoom to pin
-      el.addEventListener("click", () => {
-        map.flyTo({
-          center: [pin.lng, pin.lat],
-          zoom: 18,
-          duration: 1000,
-        });
-      });
+      // Create popup with mobile-friendly options
+      const popup = new mapboxgl.Popup({
+        offset: 25,
+        closeButton: true,
+        closeOnClick: false,
+        closeOnMove: false, // Prevent closing when map moves
+        maxWidth: "300px",
+      }).setHTML(
+        `<strong>${pin.mood}</strong>${pin.message ? " – " + pin.message : ""}`
+      );
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat([pin.lng, pin.lat])
-        .setPopup(
-          new mapboxgl.Popup({ offset: 8 }).setHTML(
-            `<strong>${pin.mood}</strong>${
-              pin.message ? " – " + pin.message : ""
-            }`
-          )
-        )
+        .setPopup(popup)
         .addTo(map);
+
+      // Add click handler to open popup (instead of automatic popup on click)
+      // This gives us more control over the behavior
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        marker.togglePopup();
+      });
 
       markersRef.current.push(marker);
     });
