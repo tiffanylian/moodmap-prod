@@ -54,14 +54,7 @@ export default function SubmitPinPage() {
     if (authLoading) return;
 
     if (!user) {
-      // Don't redirect if URL contains auth tokens - give Supabase time to process them
-      const hasAuthTokens =
-        window.location.hash.includes("access_token") ||
-        window.location.hash.includes("refresh_token");
-
-      if (!hasAuthTokens) {
-        navigate("/", { replace: true });
-      }
+      navigate("/", { replace: true });
       return;
     }
 

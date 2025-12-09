@@ -20,6 +20,19 @@ export default function LoginPage() {
     }
   }, [user, authLoading, navigate]);
 
+  // Check for error in URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.substring(1));
+    const errorCode = params.get("error_code");
+    const errorDescription = params.get("error_description");
+
+    if (errorCode === "otp_expired") {
+      setError("Email link expired. Please request a new login link.");
+    } else if (errorDescription) {
+      setError(decodeURIComponent(errorDescription));
+    }
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
