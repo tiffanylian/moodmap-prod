@@ -18,10 +18,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check if URL has auth tokens from magic link
+    const hasAuthTokens = window.location.hash.includes("access_token");
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      setLoading(false);
+      // If we have auth tokens but no session yet, keep loading
+      if (hasAuthTokens && !session) {
+        // Give Supabase a moment to process the tokens
+        setTimeout(() => setLoading(false), 500);
+      } else {
+        setLoading(false);
+      }
     });
 
     // Listen for auth changes

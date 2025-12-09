@@ -53,13 +53,15 @@ export default function SubmitPinPage() {
     // Wait for auth to load before redirecting
     if (authLoading) return;
 
-    // If URL contains auth tokens (from magic link), wait a bit longer for processing
-    if (window.location.hash.includes("access_token")) {
-      return;
-    }
-
     if (!user) {
-      navigate("/", { replace: true });
+      // Don't redirect if URL contains auth tokens - give Supabase time to process them
+      const hasAuthTokens =
+        window.location.hash.includes("access_token") ||
+        window.location.hash.includes("refresh_token");
+
+      if (!hasAuthTokens) {
+        navigate("/", { replace: true });
+      }
       return;
     }
 
