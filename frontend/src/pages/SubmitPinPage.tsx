@@ -253,15 +253,15 @@ export default function SubmitPinPage() {
       <div className="absolute top-0 right-0 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
       <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
 
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-2xl">
-        <div className="flex justify-between items-start mb-6">
+      <div className="relative z-10 container mx-auto px-4 py-6 sm:py-8 max-w-2xl">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex-1"
           >
             <motion.h1
-              className="text-4xl font-black mb-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent"
+              className="text-3xl sm:text-4xl font-black mb-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent"
               animate={{ scale: [1, 1.02, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -271,10 +271,10 @@ export default function SubmitPinPage() {
               ✨ check in with yourself bestie ✨
             </p>
           </motion.div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0 self-end sm:self-start">
             <button
               type="button"
-              className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full font-semibold text-sm hover:bg-white shadow-md transition-all"
+              className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full font-semibold text-sm hover:bg-white shadow-md transition-all whitespace-nowrap"
               onClick={() => navigate("/map")}
             >
               view pins
@@ -436,7 +436,6 @@ export default function SubmitPinPage() {
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     log this vibe
-                    <span className="text-xl">💖</span>
                   </span>
                 )}
               </button>

@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchPins, calculateStreak, logout, reportPin, checkUserSuspension } from "../api/client";
+import {
+  fetchPins,
+  calculateStreak,
+  logout,
+  reportPin,
+  checkUserSuspension,
+} from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import { motion } from "framer-motion";
 import type { MoodPin } from "../types";
@@ -71,7 +77,7 @@ export default function MapPage() {
       <div className="absolute top-0 right-0 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
       <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
 
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-2xl">
+      <div className="relative z-10 container mx-auto px-4 py-6 sm:py-8 max-w-2xl">
         {userSuspended && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -79,7 +85,8 @@ export default function MapPage() {
             className="mb-4 p-4 bg-red-100/80 backdrop-blur-sm border-2 border-red-400 rounded-2xl"
           >
             <p className="text-red-800 font-semibold text-sm">
-              ⚠️ Your account has been suspended due to multiple policy violations. You can no longer submit pins.
+              ⚠️ Your account has been suspended due to multiple policy
+              violations. You can no longer submit pins.
             </p>
           </motion.div>
         )}
@@ -120,24 +127,24 @@ export default function MapPage() {
           </motion.div>
         )}
 
-        <div className="flex justify-between items-start mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex-1"
           >
             <motion.h1
-              className="text-4xl font-black mb-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent"
+              className="text-3xl sm:text-4xl font-black mb-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent"
               animate={{ scale: [1, 1.02, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              vibe map 🗺️
+              mood map 🗺️
             </motion.h1>
             <p className="text-gray-600 text-sm flex items-center gap-2">
               ✨ see what everyone&apos;s feeling ✨
             </p>
           </motion.div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0 self-end sm:self-start">
             <button
               type="button"
               className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full font-semibold text-sm hover:bg-white shadow-md transition-all"
@@ -183,35 +190,44 @@ export default function MapPage() {
             try {
               if (flaggedPinId) {
                 const result = await reportPin(flaggedPinId);
-                
+
                 // If pin was deleted due to reaching report threshold, remove it from list
                 if (result.pinDeleted) {
-                  setPins((prevPins) => 
+                  setPins((prevPins) =>
                     prevPins.filter((pin) => pin.id !== flaggedPinId)
                   );
                 }
-                
+
                 // If user was suspended, show alert
                 if (result.userSuspended) {
-                  alert("This user's account has been suspended due to multiple policy violations.");
+                  alert(
+                    "This user's account has been suspended due to multiple policy violations."
+                  );
                 }
-                
+
                 // Show success message
                 setShowReportSuccess(true);
                 setTimeout(() => setShowReportSuccess(false), 3000);
               }
-              
+
               setShowReportConfirm(false);
               setFlaggedPinId(null);
             } catch (error) {
               console.error("Error reporting pin:", error);
               let errorMessage = "Failed to report pin. Please try again.";
-              
+
               if (error instanceof Error) {
                 const msg = error.message.toLowerCase();
-                if (msg.includes("already reported") || msg.includes("have already reported")) {
-                  errorMessage = "You've already reported this pin. You can only report each pin once.";
-                } else if (msg.includes("pin not found") || msg.includes("not found")) {
+                if (
+                  msg.includes("already reported") ||
+                  msg.includes("have already reported")
+                ) {
+                  errorMessage =
+                    "You've already reported this pin. You can only report each pin once.";
+                } else if (
+                  msg.includes("pin not found") ||
+                  msg.includes("not found")
+                ) {
                   errorMessage = "This pin no longer exists.";
                 } else if (msg.includes("not authenticated")) {
                   errorMessage = "Please log in to report pins.";
@@ -221,7 +237,7 @@ export default function MapPage() {
                   errorMessage = error.message;
                 }
               }
-              
+
               setReportError(errorMessage);
               setShowReportConfirm(false);
               setFlaggedPinId(null);

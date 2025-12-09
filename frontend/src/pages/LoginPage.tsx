@@ -75,7 +75,7 @@ export default function LoginPage() {
               animate={{ scale: [1, 1.02, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              vibe map 🗺️
+              mood map 🗺️
             </motion.h1>
             <p className="text-gray-600 text-lg">check in with your mood</p>
           </div>
