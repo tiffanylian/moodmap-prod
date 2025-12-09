@@ -143,7 +143,6 @@ export async function loginWithEmail(email: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
     email: email.toLowerCase().trim(),
     options: {
-      emailRedirectTo: window.location.origin,
       shouldCreateUser: true,
     }
   });

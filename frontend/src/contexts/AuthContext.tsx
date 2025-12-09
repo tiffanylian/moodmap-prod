@@ -18,6 +18,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Clear any expired OTP error from URL
+    const params = new URLSearchParams(window.location.hash.substring(1));
+    if (params.get("error_code") === "otp_expired") {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
