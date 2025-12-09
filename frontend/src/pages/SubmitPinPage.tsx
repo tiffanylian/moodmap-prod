@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { createPin, getCurrentUser, logout, checkUserSuspension } from "../api/client";
+import {
+  createPin,
+  getCurrentUser,
+  logout,
+  checkUserSuspension,
+} from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import { quickValidateText, checkContentQuality } from "../utils/qcValidator";
 import mapboxgl from "mapbox-gl";
@@ -37,7 +42,7 @@ export default function SubmitPinPage() {
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
 
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const currentMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -45,8 +50,11 @@ export default function SubmitPinPage() {
 
   // Redirect if not logged in and check daily submission
   useEffect(() => {
+    // Wait for auth to load before redirecting
+    if (authLoading) return;
+
     if (!user) {
-      navigate("/");
+      navigate("/", { replace: true });
       return;
     }
 
@@ -70,7 +78,7 @@ export default function SubmitPinPage() {
       .catch((err) => {
         console.error("Error checking suspension:", err);
       });
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   // Request user's location on component mount
   useEffect(() => {

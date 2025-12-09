@@ -16,7 +16,7 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (user && !authLoading) {
-      navigate("/submit");
+      navigate("/submit", { replace: true });
     }
   }, [user, authLoading, navigate]);
 
