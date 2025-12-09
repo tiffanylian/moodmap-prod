@@ -131,16 +131,7 @@ export async function checkUserExists(email: string): Promise<boolean> {
 }
 
 /**
- * Validate email format (Penn email)
- */
-function isValidPennEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-/**
- * Sign in with email - validates format and creates anonymous session
- * No email is sent, user is signed in directly
+ * Sign in with email using magic link - validates Penn email domain
  */
 export async function loginWithEmail(email: string): Promise<void> {
   // Validate Penn email domain
