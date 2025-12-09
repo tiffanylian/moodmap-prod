@@ -131,7 +131,52 @@ export async function checkUserExists(email: string): Promise<boolean> {
 }
 
 /**
+ * Sign up with email and password - validates Penn email domain
+ */
+export async function signUpWithPassword(
+  email: string,
+  password: string
+): Promise<void> {
+  // Validate Penn email domain
+  if (!email.toLowerCase().endsWith('@upenn.edu')) {
+    throw new Error('Please use your Penn email (@upenn.edu)');
+  }
+
+  // Validate password strength
+  if (password.length < 6) {
+    throw new Error('Password must be at least 6 characters');
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email: email.toLowerCase().trim(),
+    password: password,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * Sign in with email and password
+ */
+export async function signInWithPassword(
+  email: string,
+  password: string
+): Promise<void> {
+  const { error } = await supabase.auth.signInWithPassword({
+    email: email.toLowerCase().trim(),
+    password: password,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+/**
  * Sign in with email using magic link - validates Penn email domain
+ * @deprecated Use signUpWithPassword and signInWithPassword instead
  */
 export async function loginWithEmail(email: string): Promise<void> {
   // Validate Penn email domain
@@ -143,6 +188,7 @@ export async function loginWithEmail(email: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
     email: email.toLowerCase().trim(),
     options: {
+      emailRedirectTo: `${window.location.origin}/`,
       shouldCreateUser: true,
     }
   });

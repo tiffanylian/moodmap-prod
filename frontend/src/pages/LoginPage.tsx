@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginWithEmail } from "../api/client";
+import { signUpWithPassword, signInWithPassword } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import { motion } from "framer-motion";
 import FloatingStars from "../components/FloatingStars";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
@@ -20,32 +21,20 @@ export default function LoginPage() {
     }
   }, [user, authLoading, navigate]);
 
-  // Check for error in URL on mount
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.substring(1));
-    const errorCode = params.get("error_code");
-    const errorDescription = params.get("error_description");
-
-    if (errorCode === "otp_expired") {
-      setError("Email link expired. Please request a new login link.");
-    } else if (errorDescription) {
-      setError(decodeURIComponent(errorDescription));
-    }
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      await loginWithEmail(email);
-      setEmailSent(true);
-      // User will click magic link in email to complete sign in
+      if (isSignUp) {
+        await signUpWithPassword(email, password);
+      } else {
+        await signInWithPassword(email, password);
+      }
+      // User is now signed in, will be redirected by useEffect
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to send login link"
-      );
+      setError(err instanceof Error ? err.message : "Authentication failed");
     } finally {
       setLoading(false);
     }
@@ -99,7 +88,7 @@ export default function LoginPage() {
             transition={{ delay: 0.1 }}
             className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/20"
           >
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Penn email
@@ -109,6 +98,23 @@ export default function LoginPage() {
                   value={email}
                   placeholder="name@upenn.edu"
                   onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="w-full px-4 py-3 rounded-full border-2 border-transparent bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-purple-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  placeholder={
+                    isSignUp ? "Create a password (6+ chars)" : "Enter password"
+                  }
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
                   className="w-full px-4 py-3 rounded-full border-2 border-transparent bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-purple-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -125,23 +131,9 @@ export default function LoginPage() {
                 </motion.div>
               )}
 
-              {emailSent && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 bg-green-100 border-2 border-green-300 rounded-2xl text-green-700 text-sm font-medium text-center"
-                >
-                  <p className="font-bold mb-1">✨ Check your email!</p>
-                  <p className="text-xs">
-                    We sent a magic link to {email}. Click it to sign in (check
-                    spam if needed).
-                  </p>
-                </motion.div>
-              )}
-
               <button
                 type="submit"
-                disabled={loading || emailSent}
+                disabled={loading}
                 className="w-full h-12 text-lg font-bold bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
@@ -155,10 +147,35 @@ export default function LoginPage() {
                   >
                     ✨
                   </motion.span>
-                ) : emailSent ? (
-                  "Email sent! Check your inbox"
+                ) : isSignUp ? (
+                  "Create account"
                 ) : (
-                  "Send magic link"
+                  "Sign in"
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError("");
+                }}
+                className="w-full text-center text-sm hover:cursor-pointer transition-all font-medium"
+              >
+                {isSignUp ? (
+                  <>
+                    Already have an account?{" "}
+                    <span className="text-purple-600 hover:text-purple-700">
+                      Sign in
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Don't have an account?{" "}
+                    <span className="text-purple-600 hover:text-purple-700">
+                      Create one
+                    </span>
+                  </>
                 )}
               </button>
             </form>
