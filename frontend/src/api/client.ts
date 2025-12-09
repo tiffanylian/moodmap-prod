@@ -150,6 +150,9 @@ export async function signUpWithPassword(
   const { error } = await supabase.auth.signUp({
     email: email.toLowerCase().trim(),
     password: password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/`,
+    },
   });
 
   if (error) {

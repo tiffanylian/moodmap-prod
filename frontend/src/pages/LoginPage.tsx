@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [success, setSuccess] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isEmailConfirmationSent, setIsEmailConfirmationSent] = useState(false);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
@@ -40,6 +41,9 @@ export default function LoginPage() {
         setEmail("");
       } else if (isSignUp) {
         await signUpWithPassword(email, password);
+        setIsEmailConfirmationSent(true);
+        setEmail("");
+        setPassword("");
       } else {
         await signInWithPassword(email, password);
       }
@@ -99,147 +103,180 @@ export default function LoginPage() {
             transition={{ delay: 0.1 }}
             className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/20"
           >
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Penn email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  placeholder="name@upenn.edu"
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={loading}
-                  className="w-full px-4 py-3 rounded-full border-2 border-transparent bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-purple-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-
-              {!isForgotPassword && (
+            {isEmailConfirmationSent ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center"
+              >
+                <div className="mb-4 text-5xl">📧</div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                  Confirm your email
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  We've sent a confirmation link to{" "}
+                  <span className="font-semibold">{email}</span>. Please click
+                  the link in your email to complete your sign up.
+                </p>
+                <p className="text-sm text-gray-500 mb-6">
+                  Don't see it? Check your spam folder.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEmailConfirmationSent(false);
+                    setIsSignUp(false);
+                    setError("");
+                    setSuccess("");
+                  }}
+                  className="text-purple-600 hover:text-purple-700 font-medium text-sm hover:underline transition-all"
+                >
+                  Back to sign in
+                </button>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <div className="flex items-end justify-between gap-2 mb-2">
-                    <label className="block text-sm font-semibold text-gray-700">
-                      Password
-                    </label>
-                    {!isSignUp && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsForgotPassword(true);
-                          setError("");
-                          setSuccess("");
-                          setPassword("");
-                        }}
-                        className="text-xs text-purple-600 hover:text-purple-700 font-medium hover:underline transition-all"
-                      >
-                        Forgot?
-                      </button>
-                    )}
-                  </div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Penn email
+                  </label>
                   <input
-                    type="password"
-                    value={password}
-                    placeholder={
-                      isSignUp
-                        ? "Create a password (6+ chars)"
-                        : "Enter password"
-                    }
-                    onChange={(e) => setPassword(e.target.value)}
+                    type="email"
+                    value={email}
+                    placeholder="name@upenn.edu"
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
                     className="w-full px-4 py-3 rounded-full border-2 border-transparent bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-purple-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
-              )}
 
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-3 bg-red-100 border-2 border-red-300 rounded-2xl text-red-700 text-sm font-medium text-center"
-                >
-                  {error}
-                </motion.div>
-              )}
-
-              {success && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-3 bg-green-100 border-2 border-green-300 rounded-2xl text-green-700 text-sm font-medium text-center"
-                >
-                  {success}
-                </motion.div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-12 text-lg font-bold bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <motion.span
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                  >
-                    ✨
-                  </motion.span>
-                ) : isForgotPassword ? (
-                  "Send reset email"
-                ) : isSignUp ? (
-                  "Create account"
-                ) : (
-                  "Sign in"
+                {!isForgotPassword && (
+                  <div>
+                    <div className="flex items-end justify-between gap-2 mb-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Password
+                      </label>
+                      {!isSignUp && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsForgotPassword(true);
+                            setError("");
+                            setSuccess("");
+                            setPassword("");
+                          }}
+                          className="text-xs text-purple-600 hover:text-purple-700 font-medium hover:underline transition-all"
+                        >
+                          Forgot?
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      type="password"
+                      value={password}
+                      placeholder={
+                        isSignUp
+                          ? "Create a password (6+ chars)"
+                          : "Enter password"
+                      }
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      disabled={loading}
+                      className="w-full px-4 py-3 rounded-full border-2 border-transparent bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-purple-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                  </div>
                 )}
-              </button>
 
-              {!isForgotPassword && (
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 bg-red-100 border-2 border-red-300 rounded-2xl text-red-700 text-sm font-medium text-center"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+
+                {success && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 bg-green-100 border-2 border-green-300 rounded-2xl text-green-700 text-sm font-medium text-center"
+                  >
+                    {success}
+                  </motion.div>
+                )}
+
                 <button
-                  type="button"
-                  onClick={() => {
-                    setIsSignUp(!isSignUp);
-                    setError("");
-                    setSuccess("");
-                  }}
-                  className="w-full text-center text-sm hover:cursor-pointer transition-all font-medium"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-12 text-lg font-bold bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSignUp ? (
-                    <>
-                      Already have an account?{" "}
-                      <span className="text-purple-600 hover:text-purple-700">
-                        Sign in
-                      </span>
-                    </>
+                  {loading ? (
+                    <motion.span
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                    >
+                      ✨
+                    </motion.span>
+                  ) : isForgotPassword ? (
+                    "Send reset email"
+                  ) : isSignUp ? (
+                    "Create account"
                   ) : (
-                    <>
-                      Don't have an account?{" "}
-                      <span className="text-purple-600 hover:text-purple-700">
-                        Create one
-                      </span>
-                    </>
+                    "Sign in"
                   )}
                 </button>
-              )}
 
-              {isForgotPassword && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsForgotPassword(false);
-                    setError("");
-                    setSuccess("");
-                    setEmail("");
-                  }}
-                  className="w-full text-center text-xs hover:cursor-pointer transition-all text-purple-600 hover:text-purple-700 font-medium"
-                >
-                  Back to sign in
-                </button>
-              )}
-            </form>
+                {!isForgotPassword && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSignUp(!isSignUp);
+                      setError("");
+                      setSuccess("");
+                    }}
+                    className="w-full text-center text-sm hover:cursor-pointer transition-all font-medium"
+                  >
+                    {isSignUp ? (
+                      <>
+                        Already have an account?{" "}
+                        <span className="text-purple-600 hover:text-purple-700">
+                          Sign in
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        Don't have an account?{" "}
+                        <span className="text-purple-600 hover:text-purple-700">
+                          Create one
+                        </span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {isForgotPassword && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsForgotPassword(false);
+                      setError("");
+                      setSuccess("");
+                      setEmail("");
+                    }}
+                    className="w-full text-center text-xs hover:cursor-pointer transition-all text-purple-600 hover:text-purple-700 font-medium"
+                  >
+                    Back to sign in
+                  </button>
+                )}
+              </form>
+            )}
 
             <p className="text-center text-xs text-gray-500 mt-6">
               MoodMap @ Penn · anonymous mood pins, one campus
