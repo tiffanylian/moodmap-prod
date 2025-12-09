@@ -2,6 +2,9 @@
 
 A real-time mood mapping application with community reporting and progressive moderation. Users can share their emotional state across a map and report inappropriate content with an escalating moderation system.
 
+## Note
+This repo is copied from https://github.com/MoodMap-Team4/moodmap used for hosting purposes! (Couldn't figure out organization perms)
+
 ## 🎯 Features
 
 - **Interactive Map**: Visualize user moods in real-time on a Mapbox GL map
@@ -324,4 +327,4 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 ---
 
-**Made with 💜 by Tiffany Lian**
+**Made with 💜 by Mood Map Team**
