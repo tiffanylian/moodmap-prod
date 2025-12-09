@@ -201,6 +201,44 @@ export async function loginWithEmail(email: string): Promise<void> {
 }
 
 /**
+ * Request a password reset email
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  // Validate Penn email domain
+  if (!email.toLowerCase().endsWith('@upenn.edu')) {
+    throw new Error('Please use your Penn email (@upenn.edu)');
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    email.toLowerCase().trim(),
+    {
+      redirectTo: `${window.location.origin}/reset-password`,
+    }
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * Update password with a reset token
+ */
+export async function updatePasswordWithToken(newPassword: string): Promise<void> {
+  if (newPassword.length < 6) {
+    throw new Error('Password must be at least 6 characters');
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+/**
  * Sign out the current user
  */
 export async function logout(): Promise<void> {

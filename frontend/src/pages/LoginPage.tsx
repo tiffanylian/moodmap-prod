@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signUpWithPassword, signInWithPassword } from "../api/client";
+import {
+  signUpWithPassword,
+  signInWithPassword,
+  requestPasswordReset,
+} from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import { motion } from "framer-motion";
 import FloatingStars from "../components/FloatingStars";
@@ -10,7 +14,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
@@ -25,9 +31,14 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
-      if (isSignUp) {
+      if (isForgotPassword) {
+        await requestPasswordReset(email);
+        setSuccess("Password reset email sent! Check your inbox.");
+        setEmail("");
+      } else if (isSignUp) {
         await signUpWithPassword(email, password);
       } else {
         await signInWithPassword(email, password);
@@ -104,22 +115,42 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  placeholder={
-                    isSignUp ? "Create a password (6+ chars)" : "Enter password"
-                  }
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                  className="w-full px-4 py-3 rounded-full border-2 border-transparent bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-purple-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
+              {!isForgotPassword && (
+                <div>
+                  <div className="flex items-end justify-between gap-2 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Password
+                    </label>
+                    {!isSignUp && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsForgotPassword(true);
+                          setError("");
+                          setSuccess("");
+                          setPassword("");
+                        }}
+                        className="text-xs text-purple-600 hover:text-purple-700 font-medium hover:underline transition-all"
+                      >
+                        Forgot?
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="password"
+                    value={password}
+                    placeholder={
+                      isSignUp
+                        ? "Create a password (6+ chars)"
+                        : "Enter password"
+                    }
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                    className="w-full px-4 py-3 rounded-full border-2 border-transparent bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-purple-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+              )}
 
               {error && (
                 <motion.div
@@ -128,6 +159,16 @@ export default function LoginPage() {
                   className="p-3 bg-red-100 border-2 border-red-300 rounded-2xl text-red-700 text-sm font-medium text-center"
                 >
                   {error}
+                </motion.div>
+              )}
+
+              {success && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 bg-green-100 border-2 border-green-300 rounded-2xl text-green-700 text-sm font-medium text-center"
+                >
+                  {success}
                 </motion.div>
               )}
 
@@ -147,6 +188,8 @@ export default function LoginPage() {
                   >
                     ✨
                   </motion.span>
+                ) : isForgotPassword ? (
+                  "Send reset email"
                 ) : isSignUp ? (
                   "Create account"
                 ) : (
@@ -154,30 +197,48 @@ export default function LoginPage() {
                 )}
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setError("");
-                }}
-                className="w-full text-center text-sm hover:cursor-pointer transition-all font-medium"
-              >
-                {isSignUp ? (
-                  <>
-                    Already have an account?{" "}
-                    <span className="text-purple-600 hover:text-purple-700">
-                      Sign in
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    Don't have an account?{" "}
-                    <span className="text-purple-600 hover:text-purple-700">
-                      Create one
-                    </span>
-                  </>
-                )}
-              </button>
+              {!isForgotPassword && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setError("");
+                    setSuccess("");
+                  }}
+                  className="w-full text-center text-sm hover:cursor-pointer transition-all font-medium"
+                >
+                  {isSignUp ? (
+                    <>
+                      Already have an account?{" "}
+                      <span className="text-purple-600 hover:text-purple-700">
+                        Sign in
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      Don't have an account?{" "}
+                      <span className="text-purple-600 hover:text-purple-700">
+                        Create one
+                      </span>
+                    </>
+                  )}
+                </button>
+              )}
+
+              {isForgotPassword && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setError("");
+                    setSuccess("");
+                    setEmail("");
+                  }}
+                  className="w-full text-center text-xs hover:cursor-pointer transition-all text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  Back to sign in
+                </button>
+              )}
             </form>
 
             <p className="text-center text-xs text-gray-500 mt-6">
