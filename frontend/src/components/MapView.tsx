@@ -145,8 +145,9 @@ export default forwardRef<MapViewHandle, Props>(function MapView(
 
         // Open this popup and track it
         marker.togglePopup();
-        if (marker.getPopup().isOpen()) {
-          currentPopupRef.current = marker.getPopup();
+        const markerPopup = marker.getPopup();
+        if (markerPopup && markerPopup.isOpen()) {
+          currentPopupRef.current = markerPopup;
         } else {
           currentPopupRef.current = null;
         }
