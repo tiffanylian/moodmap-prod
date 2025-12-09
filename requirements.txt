@@ -1,6 +1,6 @@
 fastapi==0.115.0
 uvicorn==0.30.0
-supabase==2.3.4
+supabase==2.5.0
 python-dotenv==1.0.0
 pydantic==2.9.2
 textblob==0.17.1

@@ -12,6 +12,7 @@ import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
 import logging
+from pathlib import Path
 
 from ..qc.checker import QCChecker
 
@@ -19,7 +20,9 @@ from ..qc.checker import QCChecker
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+# Load environment variables from .env file in the backend directory
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 app = FastAPI(
     title="Mood Map API",
@@ -53,10 +56,11 @@ logger.info(f"Service Role Key present: {bool(supabase_key_service)}")
 logger.info(f"Anon Key present: {bool(supabase_key_anon)}")
 
 supabase = None
-if supabase_url:
+if supabase_url and (supabase_key_service or supabase_key_anon):
     # Try service role key first, then fall back to anon key
     for key_type, key_value in [("Service Role", supabase_key_service), ("Anon", supabase_key_anon)]:
         if not key_value:
+            logger.debug(f"{key_type} key not provided, skipping")
             continue
         try:
             logger.info(f"Attempting to create Supabase client with {key_type} key")
@@ -64,13 +68,17 @@ if supabase_url:
             logger.info(f"✅ Supabase client initialized successfully with {key_type} key")
             break
         except Exception as e:
-            logger.warning(f"⚠️ Failed to initialize Supabase with {key_type} key: {e}")
+            logger.error(f"❌ Failed to initialize Supabase with {key_type} key: {str(e)}")
+            logger.debug(f"Full error: {repr(e)}")
             continue
     
     if not supabase:
         logger.error("❌ Failed to initialize Supabase with any available key")
 else:
-    logger.warning("❌ Supabase URL not configured")
+    if not supabase_url:
+        logger.error("❌ Supabase URL not configured")
+    else:
+        logger.error("❌ No Supabase API keys configured")
 
 # Initialize QC checker
 qc_checker = QCChecker(sentiment_threshold=-0.5)
